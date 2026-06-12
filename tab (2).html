@@ -1,0 +1,383 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>New Tab</title>
+  <link rel="icon" href="logo.png" />
+  <meta name="color-scheme" content="light dark" />
+  <script>
+    (()=>{
+      const t = localStorage.getItem('theme');
+      if(t) document.documentElement.setAttribute('data-theme', t);
+      else if(matchMedia('(prefers-color-scheme: dark)').matches)
+        document.documentElement.setAttribute('data-theme','dark');
+    })();
+  </script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f0f0f0;
+      --bar-bg: #e0e0e0;
+      --input-bg: #fff;
+      --input-border: #ccc;
+      --text: #111;
+      --btn: #d0d0d0;
+      --btn-hover: #bbb;
+      --shadow: rgba(0,0,0,0.12);
+      --accent: #4a90e2;
+    }
+    [data-theme="dark"] {
+      --bg: #1a1a1a;
+      --bar-bg: #2a2a2a;
+      --input-bg: #333;
+      --input-border: #444;
+      --text: #eee;
+      --btn: #3a3a3a;
+      --btn-hover: #4a4a4a;
+      --shadow: rgba(0,0,0,0.4);
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, sans-serif;
+      overflow: hidden;
+    }
+
+    .tab-app {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    .nav-bar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 8px;
+      background: var(--bar-bg);
+      box-shadow: 0 1px 4px var(--shadow);
+      z-index: 10;
+      flex-shrink: 0;
+    }
+
+    .nav-btn {
+      background: var(--btn);
+      border: none;
+      border-radius: 6px;
+      color: var(--text);
+      cursor: pointer;
+      font-size: 14px;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: background 0.15s;
+      user-select: none;
+    }
+    .nav-btn:hover { background: var(--btn-hover); }
+    .nav-btn:disabled { opacity: 0.4; cursor: default; }
+
+    .url-wrap {
+      flex: 1;
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    #url {
+      width: 100%;
+      padding: 5px 36px 5px 10px;
+      border: 1px solid var(--input-border);
+      border-radius: 20px;
+      background: var(--input-bg);
+      color: var(--text);
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    #url:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(74,144,226,0.2);
+    }
+
+    .go-btn {
+      position: absolute;
+      right: 6px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text);
+      font-size: 14px;
+      padding: 2px 4px;
+      opacity: 0.5;
+      transition: opacity 0.15s;
+    }
+    .go-btn:hover { opacity: 1; }
+
+    .content {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+    }
+
+    #viewer {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
+    }
+
+    .home {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      gap: 20px;
+      padding: 20px;
+    }
+
+    .home-logo {
+      width: 64px;
+      height: 64px;
+      opacity: 0.8;
+    }
+
+    .home h1 {
+      font-size: 22px;
+      font-weight: 600;
+      opacity: 0.7;
+    }
+
+    .search-wrap {
+      display: flex;
+      width: 100%;
+      max-width: 500px;
+      gap: 8px;
+    }
+
+    #home-search {
+      flex: 1;
+      padding: 10px 16px;
+      border: 1px solid var(--input-border);
+      border-radius: 24px;
+      background: var(--input-bg);
+      color: var(--text);
+      font-size: 15px;
+      outline: none;
+      box-shadow: 0 2px 8px var(--shadow);
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    #home-search:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(74,144,226,0.2);
+    }
+
+    .search-btn {
+      padding: 10px 20px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 24px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      box-shadow: 0 2px 8px var(--shadow);
+      transition: opacity 0.15s;
+    }
+    .search-btn:hover { opacity: 0.85; }
+
+    .shortcuts {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+      max-width: 500px;
+    }
+
+    .shortcut {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      text-decoration: none;
+      color: var(--text);
+      padding: 10px 14px;
+      border-radius: 10px;
+      background: var(--input-bg);
+      border: 1px solid var(--input-border);
+      font-size: 12px;
+      cursor: pointer;
+      transition: background 0.15s;
+      min-width: 64px;
+    }
+    .shortcut:hover { background: var(--btn-hover); }
+    .shortcut img { width: 24px; height: 24px; }
+
+    .proxy-note {
+      font-size: 11px;
+      opacity: 0.45;
+      text-align: center;
+      max-width: 400px;
+    }
+  </style>
+</head>
+<body>
+<div class="tab-app">
+  <div class="nav-bar">
+    <button class="nav-btn" id="back" title="Back">&#8592;</button>
+    <button class="nav-btn" id="fwd" title="Forward">&#8594;</button>
+    <button class="nav-btn" id="reload" title="Reload">&#8635;</button>
+    <button class="nav-btn" id="home-btn" title="Home">&#8962;</button>
+    <div class="url-wrap">
+      <input id="url" type="text" placeholder="Search or enter address..." autocomplete="off" spellcheck="false" />
+      <button class="go-btn" id="go" title="Go">&#10148;</button>
+    </div>
+  </div>
+  <div class="content">
+    <div class="home" id="home-page">
+      <img class="home-logo" src="logo.png" alt="Snub" onerror="this.style.display='none'" />
+      <h1>Snub Browser</h1>
+      <div class="search-wrap">
+        <input id="home-search" type="text" placeholder="Search the web..." autocomplete="off" />
+        <button class="search-btn" id="home-go">Search</button>
+      </div>
+      <div class="shortcuts">
+        <a class="shortcut" data-url="https://google.com">
+          <img src="https://www.google.com/favicon.ico" alt="" onerror="this.style.display='none'" />
+          Google
+        </a>
+        <a class="shortcut" data-url="https://youtube.com">
+          <img src="https://www.youtube.com/favicon.ico" alt="" onerror="this.style.display='none'" />
+          YouTube
+        </a>
+        <a class="shortcut" data-url="https://github.com">
+          <img src="https://github.com/favicon.ico" alt="" onerror="this.style.display='none'" />
+          GitHub
+        </a>
+        <a class="shortcut" data-url="https://reddit.com">
+          <img src="https://www.reddit.com/favicon.ico" alt="" onerror="this.style.display='none'" />
+          Reddit
+        </a>
+      </div>
+      <p class="proxy-note">Sites load via proxy. Some sites may still be blocked by your network.</p>
+    </div>
+    <iframe id="viewer" style="display:none" allowfullscreen allow="camera; microphone; fullscreen"></iframe>
+  </div>
+</div>
+
+<script>
+  // ── Proxy config ──────────────────────────────────────────────
+  // Uses Interstellar proxy (works on GitHub Pages, no server needed)
+  // Format: https://interstellar.hahwul.com/go#<base64url>
+  const PROXY = 'https://holyunblocker900.github.io/hb/?z=';
+
+  function toProxiedUrl(raw) {
+    raw = raw.trim();
+    if (!raw) return null;
+
+    let fullUrl;
+    if (/^https?:\/\//i.test(raw)) {
+      fullUrl = raw;
+    } else if (/^[a-z0-9-]+\.[a-z]{2,}/i.test(raw) && !raw.includes(' ')) {
+      fullUrl = 'https://' + raw;
+    } else {
+      fullUrl = 'https://www.google.com/search?q=' + encodeURIComponent(raw);
+    }
+
+    return PROXY + btoa(fullUrl);
+  }
+
+  // ─────────────────────────────────────────────────────────────
+
+  const urlInput  = document.getElementById('url');
+  const viewer    = document.getElementById('viewer');
+  const homePage  = document.getElementById('home-page');
+  const backBtn   = document.getElementById('back');
+  const fwdBtn    = document.getElementById('fwd');
+  const reloadBtn = document.getElementById('reload');
+  const homeBtn   = document.getElementById('home-btn');
+  const goBtn     = document.getElementById('go');
+  const homeSearch= document.getElementById('home-search');
+  const homeGo    = document.getElementById('home-go');
+
+  let hist = [];
+  let idx  = -1;
+
+  function navigate(raw) {
+    const url = toProxiedUrl(raw);
+    if (!url) return;
+    hist = hist.slice(0, idx + 1);
+    hist.push({ display: raw, proxy: url });
+    idx = hist.length - 1;
+    load();
+  }
+
+  function load() {
+    const entry = hist[idx];
+    homePage.style.display = 'none';
+    viewer.style.display = 'block';
+    viewer.src = entry.proxy;
+    urlInput.value = entry.display;
+    updateBtns();
+  }
+
+  function showHome() {
+    viewer.style.display = 'none';
+    viewer.src = 'about:blank';
+    homePage.style.display = 'flex';
+    urlInput.value = '';
+    updateBtns();
+  }
+
+  function updateBtns() {
+    backBtn.disabled = idx <= 0;
+    fwdBtn.disabled  = idx >= hist.length - 1;
+  }
+
+  function go() {
+    const val = urlInput.value.trim();
+    if (val) navigate(val);
+  }
+
+  urlInput.addEventListener('keydown', e => { if (e.key === 'Enter') go(); });
+  urlInput.addEventListener('focus', () => urlInput.select());
+  goBtn.addEventListener('click', go);
+
+  backBtn.addEventListener('click', () => { if (idx > 0) { idx--; load(); } });
+  fwdBtn.addEventListener('click',  () => { if (idx < hist.length - 1) { idx++; load(); } });
+  reloadBtn.addEventListener('click', () => { if (viewer.style.display !== 'none') viewer.src = viewer.src; });
+  homeBtn.addEventListener('click', showHome);
+
+  function homeNavigate() {
+    const val = homeSearch.value.trim();
+    if (val) navigate(val);
+  }
+  homeSearch.addEventListener('keydown', e => { if (e.key === 'Enter') homeNavigate(); });
+  homeGo.addEventListener('click', homeNavigate);
+
+  document.querySelectorAll('.shortcut').forEach(el => {
+    el.addEventListener('click', e => { e.preventDefault(); navigate(el.dataset.url); });
+  });
+
+  // Handle #site= hash from parent index.html
+  function handleHash() {
+    const raw = location.hash.startsWith('#') ? location.hash.slice(1) : '';
+    if (!raw) { showHome(); return; }
+    let site = raw.toLowerCase().startsWith('site=') ? raw.slice(5) : (new URLSearchParams(raw).get('site') || '');
+    if (!site) { showHome(); return; }
+    try { site = decodeURIComponent(site); } catch {}
+    navigate(site);
+  }
+
+  window.addEventListener('hashchange', handleHash);
+  handleHash();
+</script>
+</body>
+</html>
